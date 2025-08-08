@@ -1,6 +1,6 @@
 import './App.css'
 import HomePage from "./pages/HomePage";
-import WalletPage from "./pages/WalletPage";
+import WalletPage from "./pages/Wallet";
 import MarketplacePage from "./pages/MarketplacePage";
 import RecyclePage from "./pages/RecyclePage";
 
