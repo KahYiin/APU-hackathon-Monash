@@ -1,5 +1,10 @@
 import './App.css'
-import { HomePage, WalletPage, MarketplacePage, RecyclePage, LeaderboardPage } from './uiPage.jsx';
+import HomePage from "./pages/HomePage";
+import WalletPage from "./pages/WalletPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import RecyclePage from "./pages/RecyclePage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+
 
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
