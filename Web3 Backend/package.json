@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "@wagmi/connectors": "^5.9.1",
+    "@wagmi/core": "^2.18.1",
+    "@web3-storage/w3up-client": "^17.3.0",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
+    "hardhat": "^2.26.2",
+    "viem": "^2.33.3",
+    "wagmi": "^2.16.1"
+  },
+  "devDependencies": {
+    "module-alias": "^2.2.3"
+  }
+}
