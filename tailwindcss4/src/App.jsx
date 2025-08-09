@@ -1,15 +1,14 @@
-import './App.css'
+import "./App.css";
 import HomePage from "./pages/HomePage";
 import WalletPage from "./pages/WalletPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import RecyclePage from "./pages/RecyclePage";
-import RegisterPage from "./pages/RegisterPage"; 
-import LoginPage from "./pages/LoginPage"; 
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 import WithdrawPage from "./pages/WithdrawalPage";
+import RedeemAwardsPage from "./pages/RedeemRewardsPage";
 
-
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
@@ -22,6 +21,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/withdrawal" element={<WithdrawPage />} />
+        <Route path="/rewards" element={<RedeemAwardsPage />} />
       </Routes>
     </Router>
   );

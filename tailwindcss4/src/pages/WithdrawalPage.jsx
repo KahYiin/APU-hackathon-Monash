@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeftCircle, Leaf, DollarSign, Banknote, Building } from "lucide-react";
+import {
+  ArrowLeftCircle,
+  Leaf,
+  DollarSign,
+  Banknote,
+  Building
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function WithdrawPage() {
@@ -10,6 +16,7 @@ export default function WithdrawPage() {
   const [bankType, setBankType] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [message, setMessage] = useState("");
+  const [moneyRain, setMoneyRain] = useState([]);
 
   const malaysiaBanks = [
     "Maybank",
@@ -27,7 +34,7 @@ export default function WithdrawPage() {
     "Affin Bank",
     "UOB Malaysia",
     "Bank Muamalat",
-    "Agrobank",
+    "Agrobank"
   ];
 
   const handleWithdraw = (e) => {
@@ -43,20 +50,47 @@ export default function WithdrawPage() {
       return;
     }
 
-    // API call logic here
     setMessage("✅ Withdrawal request submitted!");
   };
 
+  // Generate falling money elements
+  useEffect(() => {
+    const moneyArray = Array.from({ length: 15 }).map((_, index) => ({
+      id: index,
+      left: Math.random() * 100, // random position
+      delay: Math.random() * 5, // stagger start
+      size: 20 + Math.random() * 20 // random size
+    }));
+    setMoneyRain(moneyArray);
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f1ebd9] via-[#d8e0b8] to-[#bfc99b] p-6">
-      <div className="w-full max-w-lg space-y-6 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f1ebd9] via-[#d8e0b8] to-[#bfc99b] p-6 relative overflow-hidden">
+      
+      {/* Falling Money Animation */}
+      {moneyRain.map((m) => (
+        <div
+          key={m.id}
+          className="absolute animate-moneyFall"
+          style={{
+            left: `${m.left}%`,
+            animationDelay: `${m.delay}s`,
+            fontSize: `${m.size}px`,
+          }}
+        >
+          💰
+        </div>
+      ))}
+
+      <div className="w-full max-w-lg space-y-6 text-center relative z-10">
         {/* Hero */}
         <div>
           <h1 className="text-4xl font-extrabold text-[#3f3318] flex items-center justify-center gap-3 drop-shadow-md">
             <Leaf className="text-[#889063]" size={38} /> Withdraw Funds
           </h1>
           <p className="text-[#3d4720] mt-3 text-lg">
-            Turn your <span className="font-semibold">RecyCoins</span> into cash or eco-vouchers — rewards for your green actions 🌱
+            Turn your <span className="font-semibold">RecyCoins</span> into cash
+            or eco-vouchers — rewards for your green actions 🌱
           </p>
         </div>
 
@@ -64,7 +98,10 @@ export default function WithdrawPage() {
         <Card className="bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl border border-[#e2dcc0] overflow-hidden">
           {/* Header */}
           <CardHeader className="flex items-center gap-3 bg-[#f7f4e8] border-b border-[#e2dcc0]">
-            <Link to="/wallet" className="text-[#889063] hover:text-[#4C3D19] transition">
+            <Link
+              to="/wallet"
+              className="text-[#889063] hover:text-[#4C3D19] transition"
+            >
               <ArrowLeftCircle size={30} />
             </Link>
             <CardTitle className="text-2xl font-bold text-[#4C3D19]">
@@ -77,9 +114,14 @@ export default function WithdrawPage() {
             <form onSubmit={handleWithdraw} className="space-y-6">
               {/* Amount */}
               <div>
-                <label className="block mb-2 font-semibold text-[#4C3D19]">Amount</label>
+                <label className="block mb-2 font-semibold text-[#4C3D19]">
+                  Amount <p>(1 RecyCoin = RM0.05)</p>
+                </label>
                 <div className="relative">
-                  <DollarSign size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]" />
+                  <DollarSign
+                    size={20}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]"
+                  />
                   <input
                     type="number"
                     value={amount}
@@ -92,7 +134,9 @@ export default function WithdrawPage() {
 
               {/* Method */}
               <div>
-                <label className="block mb-2 font-semibold text-[#4C3D19]">Withdrawal Method</label>
+                <label className="block mb-2 font-semibold text-[#4C3D19]">
+                  Withdrawal Method
+                </label>
                 <select
                   value={method}
                   onChange={(e) => setMethod(e.target.value)}
@@ -104,14 +148,18 @@ export default function WithdrawPage() {
                 </select>
               </div>
 
-              {/* Bank Details - Only show if method is Bank */}
+              {/* Bank Details */}
               {method === "bank" && (
                 <>
-                  {/* Bank Type */}
                   <div>
-                    <label className="block mb-2 font-semibold text-[#4C3D19]">Bank Name</label>
+                    <label className="block mb-2 font-semibold text-[#4C3D19]">
+                      Bank Name
+                    </label>
                     <div className="relative">
-                      <Building size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]" />
+                      <Building
+                        size={20}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]"
+                      />
                       <select
                         value={bankType}
                         onChange={(e) => setBankType(e.target.value)}
@@ -127,11 +175,15 @@ export default function WithdrawPage() {
                     </div>
                   </div>
 
-                  {/* Bank Account Number */}
                   <div>
-                    <label className="block mb-2 font-semibold text-[#4C3D19]">Bank Account Number</label>
+                    <label className="block mb-2 font-semibold text-[#4C3D19]">
+                      Bank Account Number
+                    </label>
                     <div className="relative">
-                      <Banknote size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]" />
+                      <Banknote
+                        size={20}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#889063]"
+                      />
                       <input
                         type="text"
                         value={bankAccount}
@@ -168,6 +220,21 @@ export default function WithdrawPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Animation Styles */}
+      <style>
+        {`
+          @keyframes moneyFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+          }
+          .animate-moneyFall {
+            position: absolute;
+            top: -50px;
+            animation: moneyFall 6s linear infinite;
+          }
+        `}
+      </style>
     </div>
   );
 }
