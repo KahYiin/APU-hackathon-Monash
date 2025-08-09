@@ -7,14 +7,31 @@ export default function HomePage() {
   const leaderboard = [
     { name: "Alice", points: 450 },
     { name: "Bob", points: 390 },
-    { name: "Charlie", points: 350 },
+    { name: "Charlie", points: 350 }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#E8E1C8] to-[#D6C99B] p-8 text-center overflow-x-hidden relative">
-      {/* Optional floating particle bg */}
+      {/* Floating leaf icons */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        {/* You could add a canvas or particle effect here */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-[#A6BB56] text-2xl"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`
+            }}
+            animate={{ y: [0, 20, 0], rotate: [0, 10, -10, 0] }}
+            transition={{
+              duration: 6 + Math.random() * 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            🍃
+          </motion.div>
+        ))}
       </div>
 
       {/* Hero Header */}
@@ -24,47 +41,22 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-[#4C3D19] to-[#5A7030] drop-shadow-sm select-none">
+        <motion.h1
+          className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-[#4C3D19] to-[#5A7030] drop-shadow-sm select-none"
+          animate={{ opacity: [1, 0.8, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
           Welcome to RecyChain ♻️
-        </h1>
+        </motion.h1>
         <p className="text-lg md:text-xl text-[#506034] max-w-xl mx-auto font-semibold drop-shadow-sm">
-          Turn your trash into treasure and get rewarded for sustainable actions.
+          Turn your trash into treasure and get rewarded for sustainable
+          actions.
         </p>
       </motion.header>
 
-      {/* Navigation Buttons */}
-      <motion.div
-        className="flex justify-center gap-5 flex-wrap bg-[#CDC49C]/80 p-5 rounded-xl shadow-md max-w-3xl mx-auto mb-12"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-      >
-        <a
-          href="/register"
-          className="px-4 py-2 bg-[#677839] text-[#F2F0DC] rounded-lg shadow hover:scale-105 hover:bg-[#809A4A] transition-transform duration-300 text-sm md:text-base"
-          aria-label="Register"
-        >
-          💰 Wallet
-        </a>
-        <a
-          href="/marketplace"
-          className="px-4 py-2 bg-[#9AA663] text-[#F2F0DC] rounded-lg shadow hover:scale-105 hover:bg-[#B3C271] transition-transform duration-300 text-sm md:text-base"
-          aria-label="Marketplace"
-        >
-          🛍️ Marketplace
-        </a>
-        <button
-          onClick={() => setIsRecycleOpen(true)}
-          className="px-4 py-2 bg-[#8AA034] text-[#F2F0DC] rounded-lg shadow hover:scale-105 hover:bg-[#A6BB56] transition-transform duration-300 text-sm md:text-base"
-          aria-label="Recycle Now"
-        >
-          ♻️ Recycle Now
-        </button>
-      </motion.div>
-
-      {/* Why RecyChain Section */}
+      {/* Why RecyChain */}
       <motion.section
-        className="mt-12 z-10 relative"
+        className="mt-10 z-10 relative max-w-2xl mx-auto bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-lg"
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -73,13 +65,31 @@ export default function HomePage() {
         <h2 className="text-3xl font-semibold mb-3 text-[#4C3D19] drop-shadow-sm">
           Why RecyChain?
         </h2>
-        <p className="max-w-2xl mx-auto text-[#4C3D19] text-base md:text-lg leading-relaxed font-medium drop-shadow-sm">
+        <p className="text-[#4C3D19] text-lg leading-relaxed font-medium drop-shadow-sm">
           RecyChain uses blockchain to track and reward your recycling efforts
           transparently. Earn RecyCoins (RC) for your items, burn them for
           EcoCredits (EC), and make a direct impact on the environment. Join the
           movement for a cleaner planet.
         </p>
       </motion.section>
+
+      {/* Wallet Button */}
+      <motion.div
+        className="mt-10 flex justify-center bg-gradient-to-r from-[#A6BB56] to-[#8AA034] p-[3px] rounded-full shadow-lg max-w-xs mx-auto mb-12"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+      >
+        <motion.a
+          href="/register"
+          className="w-full text-center px-6 py-3 bg-[#677839] text-[#F2F0DC] rounded-full shadow-lg font-bold tracking-wide text-lg"
+          aria-label="Wallet"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          💰 My Wallet
+        </motion.a>
+      </motion.div>
 
       {/* Leaderboard Section */}
       <motion.section
@@ -135,65 +145,6 @@ export default function HomePage() {
           </ul>
         </div>
       </motion.section>
-
-      {/* Recycle Modal */}
-      {isRecycleOpen && (
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <motion.div
-            className="bg-white bg-opacity-90 rounded-3xl shadow-xl w-full max-w-md p-6 md:p-8 relative"
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.85, opacity: 0 }}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setIsRecycleOpen(false)}
-              className="absolute top-5 right-5 text-[#7A7F3D] hover:text-[#9CAF59] bg-transparent p-2 rounded-full transition"
-              aria-label="Close modal"
-            >
-              ✖
-            </button>
-
-            <h2 className="text-3xl font-bold mb-5 text-[#5A5F29] select-none">
-              Submit Recyclables ♻️
-            </h2>
-
-            <form className="space-y-5">
-              <input
-                type="text"
-                placeholder="Item Type (e.g. Plastic Bottle)"
-                className="w-full p-3 border-2 border-[#B4BD81] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#8BA04B] transition text-[#59602D]"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Quantity"
-                min={1}
-                className="w-full p-3 border-2 border-[#B4BD81] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#8BA04B] transition text-[#59602D]"
-                required
-              />
-              <input
-                type="file"
-                className="w-full p-3 border-2 border-[#B4BD81] rounded-xl bg-[#F8F7E9] focus:outline-none focus:ring-4 focus:ring-[#8BA04B] transition"
-              />
-              <button
-                type="submit"
-                className="w-full px-5 py-3 bg-[#73893F] text-white rounded-xl hover:bg-[#8BA04B] shadow-md transition text-sm md:text-base"
-              >
-                Submit
-              </button>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
     </div>
   );
 }
-
-
-
