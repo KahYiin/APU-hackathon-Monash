@@ -1,14 +1,14 @@
 # Flask Backend MVP
 
-A Flask-based backend MVP with user authentication, wallet management, and payment processing using Stripe.
+A simplified Flask-based backend MVP with user management, wallet functionality, and payment processing using Stripe.
 
 ## Features
 
-- **User Management**: Registration, login, and profile management
+- **User Management**: Registration and login (no authentication required for MVP)
 - **Wallet System**: Balance tracking, deposits, and withdrawals
 - **Payment Processing**: Stripe integration for secure payments
 - **Transaction History**: Complete transaction tracking
-- **JWT Authentication**: Secure API access
+- **No Authentication**: Simple user_id parameter for MVP testing
 - **Database**: SQLAlchemy with SQLite (easily configurable for PostgreSQL/MySQL)
 
 ## Setup
@@ -38,21 +38,13 @@ STRIPE_SECRET_KEY=sk_test_your_stripe_key
 STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
 ```
 
-### 3. Initialize Database
+### 3. Run the Application
 
 ```bash
 python app.py
 ```
 
-This will create the SQLite database with all tables.
-
-### 4. Run the Application
-
-```bash
-python app.py
-```
-
-The server will start on `http://localhost:5000`
+This will create the SQLite database and start the server on `http://localhost:5000`
 
 ## API Endpoints
 
@@ -84,22 +76,19 @@ Content-Type: application/json
 
 #### Get Profile
 ```
-GET /api/auth/profile
-Authorization: Bearer <jwt_token>
+GET /api/auth/profile?user_id=1
 ```
 
 ### Wallet Management
 
 #### Get Wallet Balance
 ```
-GET /api/wallet
-Authorization: Bearer <jwt_token>
+GET /api/wallet?user_id=1
 ```
 
 #### Deposit Funds
 ```
-POST /api/wallet/deposit
-Authorization: Bearer <jwt_token>
+POST /api/wallet/deposit?user_id=1
 Content-Type: application/json
 
 {
@@ -108,21 +97,9 @@ Content-Type: application/json
 }
 ```
 
-#### Confirm Payment
-```
-POST /api/wallet/confirm-payment
-Authorization: Bearer <jwt_token>
-Content-Type: application/json
-
-{
-  "payment_intent_id": "pi_xxx"
-}
-```
-
 #### Withdraw Funds
 ```
-POST /api/wallet/withdraw
-Authorization: Bearer <jwt_token>
+POST /api/wallet/withdraw?user_id=1
 Content-Type: application/json
 
 {
@@ -133,8 +110,7 @@ Content-Type: application/json
 
 #### Get Transaction History
 ```
-GET /api/wallet/transactions?page=1&per_page=10
-Authorization: Bearer <jwt_token>
+GET /api/wallet/transactions?user_id=1&page=1&per_page=10
 ```
 
 ### Health Check
@@ -221,7 +197,20 @@ flask db upgrade
 
 ## Testing
 
-Test the API endpoints using tools like Postman or curl:
+### Quick Start Testing
+
+```bash
+# Run the test suite
+python test_wallet.py
+
+# Add funds manually to any user
+python add_funds.py 1 100.00
+
+# Check balance
+python add_funds.py balance 1
+```
+
+### Manual API Testing
 
 ```bash
 # Health check
@@ -231,6 +220,14 @@ curl http://localhost:5000/api/health
 curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123","first_name":"Test","last_name":"User"}'
+
+# Check wallet balance
+curl "http://localhost:5000/api/wallet?user_id=1"
+
+# Create deposit
+curl -X POST "http://localhost:5000/api/wallet/deposit?user_id=1" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":50.00,"description":"Test deposit"}'
 ```
 
 ## License

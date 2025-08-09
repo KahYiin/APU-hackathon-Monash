@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
 import stripe
@@ -14,18 +13,15 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+# Configuration (MVP - No security concerns)
+app.config['SECRET_KEY'] = 'mvp-secret-key-123'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-this')
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 
 # Initialize extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 CORS(app)
-jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 # Configure Stripe
@@ -67,7 +63,7 @@ class Transaction(db.Model):
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Backend is running'})
 
-# User routes
+# User routes (simplified - no JWT)
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -108,12 +104,8 @@ def register():
     except Exception as e:
         print(f"Stripe customer creation failed: {e}")
     
-    # Generate token
-    access_token = create_access_token(identity=user.id)
-    
     return jsonify({
         'message': 'User registered successfully',
-        'access_token': access_token,
         'user': {
             'id': user.id,
             'email': user.email,
@@ -134,11 +126,8 @@ def login():
     if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
         return jsonify({'error': 'Invalid credentials'}), 401
     
-    access_token = create_access_token(identity=user.id)
-    
     return jsonify({
         'message': 'Login successful',
-        'access_token': access_token,
         'user': {
             'id': user.id,
             'email': user.email,
@@ -148,9 +137,9 @@ def login():
     })
 
 @app.route('/api/auth/profile', methods=['GET'])
-@jwt_required()
 def get_profile():
-    user_id = get_jwt_identity()
+    # For MVP, just return a mock profile
+    user_id = request.args.get('user_id', 1)
     user = User.query.get(user_id)
     
     if not user:
@@ -164,11 +153,10 @@ def get_profile():
         'created_at': user.created_at.isoformat()
     })
 
-# Wallet routes
+# Wallet routes (simplified - no JWT required)
 @app.route('/api/wallet', methods=['GET'])
-@jwt_required()
 def get_wallet():
-    user_id = get_jwt_identity()
+    user_id = request.args.get('user_id', 1)
     wallet = Wallet.query.filter_by(user_id=user_id).first()
     
     if not wallet:
@@ -183,9 +171,8 @@ def get_wallet():
     })
 
 @app.route('/api/wallet/deposit', methods=['POST'])
-@jwt_required()
 def deposit():
-    user_id = get_jwt_identity()
+    user_id = request.args.get('user_id', 1)
     data = request.get_json()
     
     if not data or 'amount' not in data:
@@ -231,57 +218,9 @@ def deposit():
     except Exception as e:
         return jsonify({'error': f'Payment creation failed: {str(e)}'}), 500
 
-@app.route('/api/wallet/confirm-payment', methods=['POST'])
-@jwt_required()
-def confirm_payment():
-    user_id = get_jwt_identity()
-    data = request.get_json()
-    
-    if not data or 'payment_intent_id' not in data:
-        return jsonify({'error': 'Payment intent ID is required'}), 400
-    
-    payment_intent_id = data['payment_intent_id']
-    
-    try:
-        # Retrieve payment intent from Stripe
-        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-        
-        if payment_intent.status == 'succeeded':
-            # Find the transaction
-            transaction = Transaction.query.filter_by(
-                stripe_payment_intent_id=payment_intent_id
-            ).first()
-            
-            if not transaction:
-                return jsonify({'error': 'Transaction not found'}), 404
-            
-            if transaction.user_id != user_id:
-                return jsonify({'error': 'Unauthorized'}), 403
-            
-            # Update transaction status
-            transaction.status = 'completed'
-            
-            # Update wallet balance
-            wallet = Wallet.query.get(transaction.wallet_id)
-            wallet.balance += transaction.amount
-            
-            db.session.commit()
-            
-            return jsonify({
-                'message': 'Payment confirmed successfully',
-                'new_balance': wallet.balance,
-                'transaction_id': transaction.id
-            })
-        else:
-            return jsonify({'error': 'Payment not completed'}), 400
-            
-    except Exception as e:
-        return jsonify({'error': f'Payment confirmation failed: {str(e)}'}), 500
-
 @app.route('/api/wallet/withdraw', methods=['POST'])
-@jwt_required()
 def withdraw():
-    user_id = get_jwt_identity()
+    user_id = request.args.get('user_id', 1)
     data = request.get_json()
     
     if not data or 'amount' not in data:
@@ -321,9 +260,8 @@ def withdraw():
     })
 
 @app.route('/api/wallet/transactions', methods=['GET'])
-@jwt_required()
 def get_transactions():
-    user_id = get_jwt_identity()
+    user_id = request.args.get('user_id', 1)
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
