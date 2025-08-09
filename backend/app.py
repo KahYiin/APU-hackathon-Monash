@@ -8,7 +8,6 @@ import stripe
 import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-import requests
 
 # Load environment variables
 load_dotenv()
@@ -169,7 +168,6 @@ def get_profile():
         'created_at': user.created_at.isoformat()
     })
 
-# Wallet routes (simplified - no JWT required)
 @app.route('/api/wallet', methods=['GET'])
 def get_wallet():
     user_id = request.args.get('user_id', 1)
@@ -251,14 +249,6 @@ def get_transactions():
         'current_page': page
     })
 
-from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
-from datetime import datetime
-import os
-
-# Assume db, Wallet, Transaction, Receipt, allowed_file, and app are already defined
-
-# Extract the deposit logic into a helper function
 def deposit_funds(user_id, amount, description="Test wallet deposit"):
     if amount <= 0:
         return {"error": "Amount must be positive"}, 400
