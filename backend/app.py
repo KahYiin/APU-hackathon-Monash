@@ -170,54 +170,6 @@ def get_wallet():
         'updated_at': wallet.updated_at.isoformat()
     })
 
-@app.route('/api/wallet/deposit', methods=['POST'])
-def deposit():
-    user_id = request.args.get('user_id', 1)
-    data = request.get_json()
-    
-    if not data or 'amount' not in data:
-        return jsonify({'error': 'Amount is required'}), 400
-    
-    amount = float(data['amount'])
-    if amount <= 0:
-        return jsonify({'error': 'Amount must be positive'}), 400
-    
-    wallet = Wallet.query.filter_by(user_id=user_id).first()
-    if not wallet:
-        return jsonify({'error': 'Wallet not found'}), 404
-    
-    # Create Stripe payment intent
-    try:
-        payment_intent = stripe.PaymentIntent.create(
-            amount=int(amount * 100),  # Convert to cents
-            currency=wallet.currency.lower(),
-            customer=wallet.stripe_customer_id,
-            metadata={'wallet_id': wallet.id, 'user_id': user_id}
-        )
-        
-        # Create transaction record
-        transaction = Transaction(
-            user_id=user_id,
-            wallet_id=wallet.id,
-            amount=amount,
-            transaction_type='deposit',
-            status='pending',
-            stripe_payment_intent_id=payment_intent.id,
-            description=data.get('description', 'Wallet deposit')
-        )
-        
-        db.session.add(transaction)
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Payment intent created',
-            'client_secret': payment_intent.client_secret,
-            'transaction_id': transaction.id
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Payment creation failed: {str(e)}'}), 500
-
 @app.route('/api/wallet/withdraw', methods=['POST'])
 def withdraw():
     user_id = request.args.get('user_id', 1)
@@ -281,6 +233,80 @@ def get_transactions():
         'total': transactions.total,
         'pages': transactions.pages,
         'current_page': page
+    })
+
+# Alternative: Simple deposit for testing (bypasses Stripe)
+@app.route('/api/wallet/deposit', methods=['POST'])
+def deposit_test():
+    """Test deposit function that bypasses Stripe - for development only"""
+    user_id = request.args.get('user_id', 1)
+    data = request.get_json()
+    
+    if not data or 'amount' not in data:
+        return jsonify({'error': 'Amount is required'}), 400
+    
+    amount = float(data['amount'])
+    if amount <= 0:
+        return jsonify({'error': 'Amount must be positive'}), 400
+    
+    wallet = Wallet.query.filter_by(user_id=user_id).first()
+    if not wallet:
+        return jsonify({'error': 'Wallet not found'}), 404
+    
+    # Create transaction record
+    transaction = Transaction(
+        user_id=user_id,
+        wallet_id=wallet.id,
+        amount=amount,
+        transaction_type='deposit',
+        status='completed',  # Mark as completed immediately for testing
+        description=data.get('description', 'Test wallet deposit')
+    )
+    
+    # Update wallet balance immediately
+    wallet.balance += amount
+    wallet.updated_at = datetime.utcnow()
+    
+    db.session.add(transaction)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Test deposit successful',
+        'new_balance': wallet.balance,
+        'transaction_id': transaction.id
+    })
+
+# Also add this endpoint to confirm payment manually (for testing)
+@app.route('/api/wallet/confirm-payment', methods=['POST'])
+def confirm_payment():
+    """Manually confirm a payment - for testing purposes"""
+    data = request.get_json()
+    
+    if not data or 'transaction_id' not in data:
+        return jsonify({'error': 'Transaction ID is required'}), 400
+    
+    transaction = Transaction.query.get(data['transaction_id'])
+    if not transaction:
+        return jsonify({'error': 'Transaction not found'}), 404
+    
+    if transaction.status != 'pending':
+        return jsonify({'error': 'Transaction is not pending'}), 400
+    
+    # Update transaction status
+    transaction.status = 'completed'
+    
+    # Update wallet balance
+    wallet = Wallet.query.get(transaction.wallet_id)
+    if wallet:
+        wallet.balance += transaction.amount
+        wallet.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Payment confirmed',
+        'new_balance': wallet.balance,
+        'transaction_id': transaction.id
     })
 
 if __name__ == '__main__':
