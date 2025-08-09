@@ -105,7 +105,7 @@ export default function WalletPage() {
         </Card>
 
         {/* Actions */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid text-left md:grid-cols-2 gap-4">
           <Link to="/recycle">
             <Card className="hover:scale-105 transition-transform bg-[#E5D7C4] shadow-md">
               <CardContent className="p-6 flex items-center gap-4">
@@ -154,7 +154,7 @@ export default function WalletPage() {
               ].map((t, idx) => (
                 <div
                   key={idx}
-                  className={`flex justify-between items-center p-3 rounded-xl shadow-sm 
+                  className={`flex justify-between text-left items-center p-3 rounded-xl shadow-sm 
                     ${t.type === "Bought" ? "bg-[#d0b3b3]" : "bg-[#bec4a3]"}`}
                 >
                   <div className="flex items-center gap-3">
