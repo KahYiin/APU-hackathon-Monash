@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import stripe
 import os
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 # Load environment variables
 load_dotenv()
@@ -17,6 +18,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mvp-secret-key-123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
 
 # Initialize extensions
 db = SQLAlchemy(app)
@@ -26,6 +31,16 @@ bcrypt = Bcrypt(app)
 
 # Configure Stripe
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY', 'sk_test_your_stripe_key')
+
+#Receipt model
+class Receipt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    filepath = db.Column(db.String(500), nullable=False)
+    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Models
 class User(db.Model):
@@ -308,6 +323,31 @@ def confirm_payment():
         'new_balance': wallet.balance,
         'transaction_id': transaction.id
     })
+
+# image upload route
+@app.route('/api/upload', methods=['POST'])
+def upload_receipt():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Save to DB
+        new_receipt = Receipt(filename=filename, filepath=filepath)
+        db.session.add(new_receipt)
+        db.session.commit()
+
+        return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 201
+    else:
+        return jsonify({'error': 'Invalid file type'}), 400
 
 if __name__ == '__main__':
     with app.app_context():
