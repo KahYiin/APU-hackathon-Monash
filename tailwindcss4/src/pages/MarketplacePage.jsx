@@ -17,6 +17,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 
 const sampleItems = [
   {
@@ -89,10 +90,16 @@ export default function FancyMarketplace() {
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="w-full p-3 rounded-3xl border-2 border-[#8BA04B] bg-white shadow-md appearance-none focus:outline-none focus:ring-4 focus:ring-[#A6BB56] transition cursor-pointer"
-        />
-        {/* Custom arrow */}
-        <div className="pointer-events-none absolute right-5 top-[42px] text-[#73893F] select-none">
-          ▼
+        >
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+
+        <div className="absolute right-5 top-[42px] text-[#73893F] select-none cursor-pointer hover:text-[#55642B] pt-2">
+          <Search size={20} />
         </div>
       </div>
 
