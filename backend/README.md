@@ -193,40 +193,6 @@ flask db upgrade
 5. Configure HTTPS
 6. Set up Stripe webhooks for payment confirmation
 
-## Testing
-
-### Quick Start Testing
-
-```bash
-# Run the test suite
-python test_wallet.py
-
-# Add funds manually to any user
-python add_funds.py 1 100.00
-
-# Check balance
-python add_funds.py balance 1
-```
-
-### Manual API Testing
-
-```bash
-# Health check
-curl http://localhost:5000/api/health
-
-# Register user
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123","first_name":"Test","last_name":"User"}'
-
-# Check wallet balance
-curl "http://localhost:5000/api/wallet?user_id=1"
-
-# Create deposit
-curl -X POST "http://localhost:5000/api/wallet/deposit?user_id=1" \
-  -H "Content-Type: application/json" \
-  -d '{"amount":50.00,"description":"Test deposit"}'
-```
 
 ## License
 
