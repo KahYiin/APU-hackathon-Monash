@@ -3,13 +3,104 @@ import { motion } from "framer-motion";
 
 export default function RecyclePage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [itemType, setItemType] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [username, setUsername] = useState("");
+  const userId = localStorage.getItem("user_id");
+
+  // Fetch profile name
+    fetch(`http://localhost:5000/api/auth/profile?user_id=${userId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch user");
+        return res.json();
+      })
+      .then((data) => {
+        setUsername(`${data.first_name} ${data.last_name}`);
+      })
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        setUsername("Unknown User");
+      });
+
+  // Fetch wallet balance on modal open or after successful upload
+  async function fetchWalletBalance() {
+    try {
+      const res = await fetch(`http://localhost:5000/api/wallet?user_id=${userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setWalletBalance(data.balance.toFixed(2));
+      } else {
+        setWalletBalance(null);
+      }
+    } catch {
+      setWalletBalance(null);
+    }
+  }
+
+  // Open modal and load wallet balance
+  function openModal() {
+    setMessage(null);
+    setItemType("");
+    setQuantity(1);
+    setFile(null);
+    setIsOpen(true);
+    fetchWalletBalance();
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!file) {
+      setMessage({ type: "error", text: "Please select a receipt file to upload." });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("itemType", itemType);
+      formData.append("quantity", quantity);
+
+      const res = await fetch(`http://localhost:5000/api/upload?user_id=${userId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage({
+          type: "success",
+          text: `Upload successful! Points added. New balance: ${data.deposit_result.new_balance.toFixed(2)} coins.`,
+        });
+        fetchWalletBalance();
+        // Reset form
+        setItemType("");
+        setQuantity(1);
+        setFile(null);
+      } else {
+        setMessage({ type: "error", text: data.error || "Upload failed." });
+      }
+    } catch (err) {
+      setMessage({ type: "error", text: "An error occurred during upload." });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div
       className="min-h-screen bg-fixed bg-center bg-cover relative"
       style={{
         backgroundImage:
-          "url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1600&q=80')"
+          "url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1600&q=80')",
       }}
     >
       {/* Overlay */}
@@ -25,21 +116,20 @@ export default function RecyclePage() {
             textShadow: [
               "0px 0px 0px #fff",
               "0px 0px 8px #A4C26A",
-              "0px 0px 0px #fff"
-            ]
+              "0px 0px 0px #fff",
+            ],
           }}
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         >
           ♻️ Recycle & Earn Rewards
         </motion.h1>
 
         <p className="text-lg max-w-2xl mx-auto mb-12 drop-shadow-md">
-          Turn your waste into value. Follow these simple steps and start making
-          a difference today!
+          Turn your waste into value. Follow these simple steps and start making a difference today!
         </p>
 
         {/* Steps stacked vertically in the center */}
@@ -48,18 +138,18 @@ export default function RecyclePage() {
             {
               step: 1,
               title: "Collect",
-              desc: "Gather recyclable items like plastics, paper, and metals."
+              desc: "Gather recyclable items like plastics, paper, and metals.",
             },
             {
               step: 2,
               title: "Submit",
-              desc: "Upload the item details and quantity in the form."
+              desc: "Upload the item details and quantity in the form.",
             },
             {
               step: 3,
               title: "Earn",
-              desc: "Receive rewards instantly for every item recycled."
-            }
+              desc: "Receive rewards instantly for every item recycled.",
+            },
           ].map((s, i) => (
             <div
               key={i}
@@ -79,11 +169,17 @@ export default function RecyclePage() {
 
         {/* Button */}
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={openModal}
           className="px-8 py-4 bg-[#8BA04B] text-white font-bold text-lg rounded-full shadow-lg hover:scale-110 hover:bg-[#73893F] transition transform"
         >
           ♻️ Recycle Now
         </button>
+
+        {walletBalance !== null && (
+          <p className="mt-6 font-semibold text-[#A4C26A]">
+            Your Wallet Balance: {walletBalance} coins
+          </p>
+        )}
       </div>
 
       {/* Modal */}
@@ -98,33 +194,51 @@ export default function RecyclePage() {
               ✖
             </button>
 
-            <h2 className="text-3xl font-bold mb-6 text-[#4C3D19]">
-              Submit Recyclables
-            </h2>
+            <h2 className="text-3xl font-bold mb-6 text-[#4C3D19]">Submit Recyclables</h2>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="Item Type (e.g. Plastic Bottle)"
                 className="w-full p-3 border-2 border-[#B4BD81] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#A4C26A]/50 transition text-[#59602D]"
+                value={itemType}
+                onChange={(e) => setItemType(e.target.value)}
+                required
               />
               <input
                 type="number"
                 placeholder="Quantity"
                 min={1}
                 className="w-full p-3 border-2 border-[#B4BD81] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#A4C26A]/50 transition text-[#59602D]"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
               />
               <input
                 type="file"
+                accept=".png,.jpg,.jpeg,.pdf"
                 className="w-full p-3 border-2 border-[#B4BD81] rounded-xl bg-[#F8F7E9] focus:outline-none focus:ring-4 focus:ring-[#A4C26A]/50 transition"
+                onChange={(e) => setFile(e.target.files[0])}
+                required
               />
               <button
                 type="submit"
-                className="w-full px-5 py-3 bg-[#73893F] text-white rounded-xl hover:bg-[#8BA04B] shadow-md transition text-sm md:text-base"
+                disabled={loading}
+                className="w-full px-5 py-3 bg-[#73893F] text-white rounded-xl hover:bg-[#8BA04B] shadow-md transition text-sm md:text-base disabled:opacity-60"
               >
-                Submit
+                {loading ? "Uploading..." : "Submit"}
               </button>
             </form>
+
+            {message && (
+              <p
+                className={`mt-4 text-center ${
+                  message.type === "error" ? "text-red-600" : "text-green-700"
+                }`}
+              >
+                {message.text}
+              </p>
+            )}
           </div>
         </div>
       )}
