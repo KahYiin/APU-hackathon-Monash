@@ -5,6 +5,7 @@ import MarketplacePage from "./pages/MarketplacePage";
 import RecyclePage from "./pages/RecyclePage";
 import RegisterPage from "./pages/RegisterPage"; 
 import LoginPage from "./pages/LoginPage"; 
+import WithdrawPage from "./pages/WithdrawalPage";
 
 
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/recycle" element={<RecyclePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/withdrawal" element={<WithdrawPage />} />
       </Routes>
     </Router>
   );

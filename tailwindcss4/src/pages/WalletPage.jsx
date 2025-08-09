@@ -61,8 +61,7 @@ export default function WalletPage() {
         <Card className="bg-gradient-to-r from-[#354024] to-[#889063] shadow-lg rounded-2xl text-[#E5D7C4]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-              <Wallet />{" "}
-              {username ? `${username}'s Eco Wallet` : "Loading..."}
+              <Wallet /> {username ? `${username}'s Eco Wallet` : "Loading..."}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -92,13 +91,22 @@ export default function WalletPage() {
               <p className="text-sm opacity-80">
                 Earn points by recycling & buying second-hand
               </p>
-              <div className="pt-4">
+              <div className="flex flex-row pt-4 gap-4">
                 <Button
                   variant="secondary"
                   className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"
                 >
                   Redeem Rewards <ArrowRightCircle className="ml-2 w-5 h-5" />
                 </Button>
+                <Link to="/withdrawal">
+                  <Button
+                    variant="secondary"
+                    className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"
+                    onClick={() => setIsWithdrawOpen(true)}
+                  >
+                    Withdraw Funds <ArrowRightCircle className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>
