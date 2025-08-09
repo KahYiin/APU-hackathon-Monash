@@ -32,8 +32,6 @@ Edit `.env` with your actual values:
 
 ```env
 DATABASE_URL=sqlite:///app.db
-STRIPE_SECRET_KEY=sk_test_your_stripe_key
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
 ```
 
 ### 3. Run the Application
@@ -106,6 +104,11 @@ Content-Type: application/json
 }
 ```
 
+#### Upload image file
+```
+POST /api/upload?user_id=1
+```
+
 #### Get Transaction History
 ```
 GET /api/wallet/transactions?user_id=1&page=1&per_page=10
@@ -148,50 +151,11 @@ GET /api/health
 - `description`: Transaction description
 - `created_at`: Transaction timestamp
 
-## Stripe Integration
-
-The backend integrates with Stripe for payment processing:
-
-1. **Customer Creation**: Each user gets a Stripe customer account
-2. **Payment Intents**: Deposits create Stripe payment intents
-3. **Payment Confirmation**: Payments are confirmed via webhook or manual confirmation
-4. **Security**: All sensitive data is handled securely through Stripe
-
-## Security Features
-
-- **Password Hashing**: Bcrypt for secure password storage
-- **JWT Tokens**: Secure API authentication
-- **CORS**: Cross-origin resource sharing enabled
-- **Input Validation**: All inputs are validated
-- **Error Handling**: Comprehensive error handling
-
-## Development
-
-### Adding New Features
-
-1. Create new models in `app.py`
-2. Add new routes with proper authentication
-3. Update database schema if needed
-4. Test endpoints thoroughly
-
-### Database Migrations
-
-For production, use Flask-Migrate:
-
-```bash
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
-```
-
-## Production Deployment
-
-1. Use a production database (PostgreSQL/MySQL)
-2. Set secure environment variables
-3. Use a production WSGI server (Gunicorn)
-4. Set up proper logging
-5. Configure HTTPS
-6. Set up Stripe webhooks for payment confirmation
+### Receipt 
+- `id`: Primary key
+- `filename`: Name of the image file
+- `filepath`: Path of image save in local machine's directory
+- `upload_date`: Upload date of the file
 
 
 ## License
