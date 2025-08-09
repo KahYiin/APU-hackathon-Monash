@@ -31,8 +31,6 @@ cp env.example .env
 Edit `.env` with your actual values:
 
 ```env
-SECRET_KEY=your-super-secret-key
-JWT_SECRET_KEY=your-jwt-secret-key
 DATABASE_URL=sqlite:///app.db
 STRIPE_SECRET_KEY=sk_test_your_stripe_key
 STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
