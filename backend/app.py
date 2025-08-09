@@ -8,6 +8,7 @@ import stripe
 import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -250,83 +251,63 @@ def get_transactions():
         'current_page': page
     })
 
-# Alternative: Simple deposit for testing (bypasses Stripe)
-@app.route('/api/wallet/deposit', methods=['POST'])
-def deposit_test():
-    """Test deposit function that bypasses Stripe - for development only"""
-    user_id = request.args.get('user_id', 1)
-    data = request.get_json()
-    
-    if not data or 'amount' not in data:
-        return jsonify({'error': 'Amount is required'}), 400
-    
-    amount = float(data['amount'])
+from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
+from datetime import datetime
+import os
+
+# Assume db, Wallet, Transaction, Receipt, allowed_file, and app are already defined
+
+# Extract the deposit logic into a helper function
+def deposit_funds(user_id, amount, description="Test wallet deposit"):
     if amount <= 0:
-        return jsonify({'error': 'Amount must be positive'}), 400
-    
+        return {"error": "Amount must be positive"}, 400
+
     wallet = Wallet.query.filter_by(user_id=user_id).first()
     if not wallet:
-        return jsonify({'error': 'Wallet not found'}), 404
-    
+        return {"error": "Wallet not found"}, 404
+
     # Create transaction record
     transaction = Transaction(
         user_id=user_id,
         wallet_id=wallet.id,
         amount=amount,
         transaction_type='deposit',
-        status='completed',  # Mark as completed immediately for testing
-        description=data.get('description', 'Test wallet deposit')
+        status='completed',
+        description=description
     )
-    
-    # Update wallet balance immediately
+
+    # Update wallet balance
     wallet.balance += amount
     wallet.updated_at = datetime.utcnow()
-    
+
     db.session.add(transaction)
     db.session.commit()
-    
-    return jsonify({
-        'message': 'Test deposit successful',
-        'new_balance': wallet.balance,
-        'transaction_id': transaction.id
-    })
 
-# Also add this endpoint to confirm payment manually (for testing)
-@app.route('/api/wallet/confirm-payment', methods=['POST'])
-def confirm_payment():
-    """Manually confirm a payment - for testing purposes"""
+    return {
+        "message": "Deposit successful",
+        "new_balance": wallet.balance,
+        "transaction_id": transaction.id
+    }, 200
+
+
+@app.route('/api/wallet/deposit', methods=['POST'])
+def deposit_test():
+    """Test deposit function that bypasses Stripe - for development only"""
+    user_id = int(request.args.get('user_id', 1))
     data = request.get_json()
-    
-    if not data or 'transaction_id' not in data:
-        return jsonify({'error': 'Transaction ID is required'}), 400
-    
-    transaction = Transaction.query.get(data['transaction_id'])
-    if not transaction:
-        return jsonify({'error': 'Transaction not found'}), 404
-    
-    if transaction.status != 'pending':
-        return jsonify({'error': 'Transaction is not pending'}), 400
-    
-    # Update transaction status
-    transaction.status = 'completed'
-    
-    # Update wallet balance
-    wallet = Wallet.query.get(transaction.wallet_id)
-    if wallet:
-        wallet.balance += transaction.amount
-        wallet.updated_at = datetime.utcnow()
-    
-    db.session.commit()
-    
-    return jsonify({
-        'message': 'Payment confirmed',
-        'new_balance': wallet.balance,
-        'transaction_id': transaction.id
-    })
 
-# image upload route
+    if not data or 'amount' not in data:
+        return jsonify({"error": "Amount is required"}), 400
+
+    amount = float(data['amount'])
+    result, status = deposit_funds(user_id, amount, data.get('description'))
+    return jsonify(result), status
+
+
 @app.route('/api/upload', methods=['POST'])
 def upload_receipt():
+    user_id = int(request.args.get('user_id', 1))
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
 
@@ -345,9 +326,22 @@ def upload_receipt():
         db.session.add(new_receipt)
         db.session.commit()
 
-        return jsonify({'message': 'File uploaded successfully', 'filename': filename}), 201
+        # Directly call deposit function without HTTP
+        result, status = deposit_funds(
+            user_id=user_id,  
+            amount=50.00,
+            description=f"Deposit for receipt {filename}"
+        )
+
+        return jsonify({
+            "message": "File uploaded successfully",
+            "filename": filename,
+            "deposit_result": result
+        }), status
+
     else:
         return jsonify({'error': 'Invalid file type'}), 400
+
 
 if __name__ == '__main__':
     with app.app_context():
