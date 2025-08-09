@@ -5,7 +5,7 @@ import { Gift, ArrowLeftCircle, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function RedeemRewardsPage() {
-  const [userCoins, setUserCoins] = useState(1500);
+  const [userCoins, setUserCoins] = useState(200);
 
   const awards = [
     {

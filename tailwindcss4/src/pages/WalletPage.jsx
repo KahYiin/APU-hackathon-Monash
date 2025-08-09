@@ -92,7 +92,7 @@ export default function WalletPage() {
                 Earn points by recycling & buying second-hand
               </p>
               <div className="flex flex-row pt-4 gap-4">
-                <Link to="/awards">
+                <Link to="/rewards">
                 <Button
                   variant="secondary"
                   className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"
@@ -104,7 +104,6 @@ export default function WalletPage() {
                   <Button
                     variant="secondary"
                     className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"
-                    onClick={() => setIsWithdrawOpen(true)}
                   >
                     Withdraw Funds <ArrowRightCircle className="ml-2 w-5 h-5" />
                   </Button>
